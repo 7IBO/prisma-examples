@@ -5,12 +5,8 @@ import gql from "graphql-tag"
 import { useMutation } from "@apollo/client"
 
 const CreateDraftMutation = gql`
-  mutation CreateDraftMutation(
-    $title: String!
-    $content: String
-    $authorEmail: String!
-  ) {
-    createDraft(title: $title, content: $content, authorEmail: $authorEmail) {
+  mutation CreateDraftMutation($data: PostCreateInput!) {
+    createOnePost(data: $data) {
       id
       title
       content
@@ -35,14 +31,20 @@ function Draft(props) {
     <Layout>
       <div>
         <form
-          onSubmit={async (e) => {
+          onSubmit={async e => {
             e.preventDefault()
 
             await createDraft({
               variables: {
-                title,
-                content,
-                authorEmail,
+                data: {
+                  title,
+                  content,
+                  author: {
+                    connect: {
+                      email: authorEmail,
+                    },
+                  },
+                },
               },
             })
             Router.push("/drafts")
@@ -51,20 +53,20 @@ function Draft(props) {
           <h1>Create Draft</h1>
           <input
             autoFocus
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={e => setTitle(e.target.value)}
             placeholder="Title"
             type="text"
             value={title}
           />
           <input
-            onChange={(e) => setAuthorEmail(e.target.value)}
+            onChange={e => setAuthorEmail(e.target.value)}
             placeholder="Author (email adress)"
             type="text"
             value={authorEmail}
           />
           <textarea
             cols={50}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={e => setContent(e.target.value)}
             placeholder="Content"
             rows={8}
             value={content}

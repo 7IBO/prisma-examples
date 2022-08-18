@@ -5,7 +5,7 @@ import { useQuery } from "@apollo/client"
 
 const FeedQuery = gql`
   query FeedQuery {
-    feed {
+    posts {
       id
       title
       content
@@ -53,7 +53,7 @@ const Blog = () => {
       <div className="page">
         <h1>My Blog</h1>
         <main>
-          {data.feed.map(post => (
+          {data.posts.map(post => (
             <div key={post.id} className="post">
               <Post post={post} />
             </div>

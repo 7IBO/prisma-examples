@@ -2,10 +2,11 @@ import Layout from "../../components/Layout"
 import Router, { useRouter } from "next/router"
 import gql from "graphql-tag"
 import { useQuery, useMutation } from "@apollo/client"
+import { useEffect } from "react"
 
 const PostQuery = gql`
-  query PostQuery($postId: String!) {
-    post(postId: $postId) {
+  query PostQuery($where: PostWhereUniqueInput!) {
+    post(where: $where) {
       id
       title
       content
@@ -19,12 +20,13 @@ const PostQuery = gql`
 `
 
 const PublishMutation = gql`
-  mutation PublishMutation($postId: String!) {
-    publish(postId: $postId) {
+  mutation Mutation($data: PostUpdateInput!, $where: PostWhereUniqueInput!) {
+    updateOnePost(data: $data, where: $where) {
       id
       title
       content
       published
+      viewCount
       author {
         id
         name
@@ -34,8 +36,8 @@ const PublishMutation = gql`
 `
 
 const DeleteMutation = gql`
-  mutation DeleteMutation($postId: String!) {
-    deletePost(postId: $postId) {
+  mutation DeleteMutation($where: PostWhereUniqueInput!) {
+    deleteOnePost(where: $where) {
       id
       title
       content
@@ -48,10 +50,16 @@ const DeleteMutation = gql`
   }
 `
 
-function Post() {
-  const postId = useRouter().query.id
+export function getServerSideProps(context) {
+  return {
+    props: { params: context.params },
+  }
+}
+
+function Post({ params }) {
+  const id = parseInt(params.id)
   const { loading, error, data } = useQuery(PostQuery, {
-    variables: { postId },
+    variables: { where: { id } },
   })
 
   const [publish] = useMutation(PublishMutation)
@@ -85,7 +93,8 @@ function Post() {
             onClick={async e => {
               await publish({
                 variables: {
-                  postId,
+                  data: { published: { set: true } },
+                  where: { id },
                 },
               })
               Router.push("/")
@@ -98,7 +107,7 @@ function Post() {
           onClick={async e => {
             await deletePost({
               variables: {
-                postId,
+                where: { id },
               },
             })
             Router.push("/")
